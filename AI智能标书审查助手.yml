@@ -1,0 +1,386 @@
+app:
+  description: '基于大语言模型的智能招投标文件审查系统。
+
+
+    支持自动解析PDF/Word标书文件，
+
+    识别废标风险、实质性响应要求、企业资质要求、
+
+    评分标准以及投标注意事项。
+
+
+    自动生成结构化Markdown审查报告，
+
+    并输出JSON数据供企业系统集成。'
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: AI智能标书审查助手
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.9.10@4979b8843fa46c3c2143d339f5868f04d9d77166616c00dd9f811a4adfce03ab
+    version: null
+kind: app
+version: 0.7.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        knowledge_file_size_limit: 15
+        single_chunk_attachment_limit: 10
+        skill_file_size_limit: 50
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: document-extractor
+      id: 1785902082879-source-1785902243879-target
+      source: '1785902082879'
+      sourceHandle: source
+      target: '1785902243879'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: document-extractor
+        targetType: llm
+      id: 1785902243879-source-1785902281177-target
+      selected: false
+      source: '1785902243879'
+      sourceHandle: source
+      target: '1785902281177'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1785902281177-source-1785909630343-target
+      source: '1785902281177'
+      sourceHandle: source
+      target: '1785909630343'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1785909630343-source-1785909857237-target
+      source: '1785909630343'
+      sourceHandle: source
+      target: '1785909857237'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables:
+        - allowed_file_extensions: []
+          allowed_file_types:
+          - document
+          allowed_file_upload_methods:
+          - local_file
+          default: ''
+          hide: false
+          hint: ''
+          label: 上传招标文件
+          options: []
+          placeholder: ''
+          required: true
+          type: file
+          variable: bid_document
+      height: 108
+      id: '1785902082879'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+      zIndex: 0
+    - data:
+        is_array_file: false
+        selected: false
+        title: 文档提取器
+        type: document-extractor
+        variable_selector:
+        - '1785902082879'
+        - bid_document
+      height: 103
+      id: '1785902243879'
+      position:
+        x: 382
+        y: 282
+      positionAbsolute:
+        x: 382
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 0
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params: {}
+          mode: chat
+          name: gemini-3.5-flash-lite
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: d84fd5f2-040c-4652-b159-5453f6c4e912
+          role: system
+          text: "# 角色\n你是一名资深的招投标合规审查专家，精通《中华人民共和国招标投标法》及其实施条例、政府采购法等相关法规。你的任务是对用户上传的标书（招标/投标文件）进行结构化解构与风险扫描。\n\
+            \n# 输入\n你会收到一段标书全文文本（变量 doc_text），以及可选的项目名称、关注风险点、标书类型。\n\n# 必须识别的要素\n\
+            1. 废标条款（导致投标被否决/废标的硬性条件）：如未按要求提交保证金、关键资质缺失、技术参数负偏离、盖章签字缺失、逾期送达等。\n2. 实质性响应要求（必须逐条响应的\"\
+            ★\"号条款或实质性条款）：包括商务、技术、服务、报价等维度，并注明每条需提供的响应材料。\n3. 资质要求：企业资格（注册资本、业绩、信誉）、人员证书、产品认证（如3C、ISO）、联合体要求等，并注明每项需提供的证明材料。\n\
+            4. 关键时间节点：报名/获取文件截止、答疑/澄清截止、投标保证金缴纳截止、投标截止、开标时间、工期/交付期、质保期等——务必尽量提取每一个具体日期。\n\
+            5. 模糊/矛盾/排他性表述：可能构成排斥潜在投标人或合规风险的条款。\n\n# 输出规范（严格遵守）\n请严格按以下结构输出，先写 Markdown\
+            \ 报告，再在报告末尾附一个 json 代码块：\n\n## 一、扫描概览\n- 项目名称、标书类型、扫描时间（留空由系统填）\n- 总体风险等级：高\
+            \ / 中 / 低（一句话判断依据）\n\n## 二、废标条款（否决项）\n用表格列出：条款编号 | 出处章节 | 原文要点 | 触发后果\
+            \ | 规避建议\n\n## 三、实质性响应要求\n用表格列出：要求编号 | 类别 | 内容 | 必须提供的响应材料\n\n## 四、资质要求\n\
+            用表格列出：资质编号 | 类别 | 内容 | 需提供的证明材料\n\n## 五、关键时间节点（必须提取）\n用表格列出：节点 | 时间 |\
+            \ 备注——提取标书中所有关键日期，不要遗漏。\n\n## 六、模糊/矛盾/排他性风险提示（必须提取）\n用表格列出：问题编号 | 描述 |\
+            \ 风险 | 建议\n\n## 七、评分要点\n用表格列出：序号 | 内容（含分值/权重）\n\n## 八、结构化数据（JSON）\n在报告最后，输出如下\
+            \ JSON（字段务必完整）：\n\n{\n  \"项目名称\": \"\",\n  \"标书类型\": \"\",\n  \"扫描摘要\"\
+            : \"\",\n  \"总体风险等级\": \"高/中/低\",\n  \"废标条款\": [\n    {\"条款编号\":\"\",\"\
+            出处章节\":\"\",\"原文要点\":\"\",\"触发后果\":\"\",\"规避建议\":\"\"}\n  ],\n  \"实质性响应要求\"\
+            : [\n    {\"要求编号\":\"\",\"类别\":\"\",\"内容\":\"\",\"必须提供的响应材料\":\"\"}\n\
+            \  ],\n  \"资质要求\": [\n    {\"资质编号\":\"\",\"类别\":\"\",\"内容\":\"\",\"需提供的证明材料\"\
+            :\"\"}\n  ],\n  \"关键时间节点\": [\n    {\"节点\":\"\",\"时间\":\"\",\"备注\":\"\"\
+            }\n  ],\n  \"模糊或排他性风险\": [\n    {\"问题编号\":\"\",\"描述\":\"\",\"风险\":\"\"\
+            ,\"建议\":\"\"}\n  ],\n  \"评分要点\": [\n    {\"序号\":\"\",\"内容\":\"\"}\n  ]\n\
+            }\n\n# 约束（极重要）\n- 所有数组项必须是\"对象\"（带字段的 {}），严禁把数组项写成纯字符串。例：废标条款必须写成 {\"\
+            条款编号\":\"R1\",\"出处章节\":\"第三章\",\"原文要点\":\"...\",\"触发后果\":\"投标被否决\",\"\
+            规避建议\":\"...\"}，绝不能写成 [\"条款1\",\"条款2\"]。\n- 七个 section 都必须出现；即使标书中未提及某项，也要输出空数组\
+            \ []，绝对禁止省略整个 section（尤其是\"关键时间节点\"和\"模糊或排他性风险\"）。\n- 关键时间节点必须尽量提取标书里的每一个具体日期，不要让\"\
+            时间\"字段留空。\n- 所有结论必须基于标书原文，严禁编造；原文未提及的字段填 \"\"。\n- JSON 必须是合法可解析的 JSON，不要带注释，不要省略引号。\n\
+            - 报告中表格与 JSON 的字段含义、数量保持一致。\n- 使用简体中文输出。"
+        - id: b3695856-aa19-47f3-866a-fdabb08c6d02
+          role: user
+          text: 请分析以下招标文件： {{{#1785902243879.text#}}
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 1000
+        selected: false
+        title: LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 116
+      id: '1785902281177'
+      position:
+        x: 683
+        y: 282
+      positionAbsolute:
+        x: 683
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 0
+    - data:
+        code: "import re\nimport json\n\nKEY_MAP = {\n    \"project_name\": \"项目名称\"\
+          , \"bid_type\": \"标书类型\",\n    \"scan_summary\": \"扫描摘要\", \"overall_risk_level\"\
+          : \"总体风险等级\",\n    \"risk_level\": \"总体风险等级\", \"rejection_clauses\": \"\
+          废标条款\",\n    \"reject_items\": \"废标条款\", \"substantive_requirements\": \"\
+          实质性响应要求\",\n    \"mandatory_requirements\": \"实质性响应要求\", \"qualification_requirements\"\
+          : \"资质要求\",\n    \"key_deadlines\": \"关键时间节点\", \"ambiguous_or_exclusive\"\
+          : \"模糊或排他性风险\",\n    \"source_section\": \"出处章节\", \"content\": \"原文要点\"\
+          , \"consequence\": \"触发后果\",\n    \"suggestion\": \"规避建议\", \"category\"\
+          : \"类别\", \"must_provide\": \"必须提供的响应材料\",\n    \"evidence_needed\": \"\
+          需提供的证明材料\", \"node\": \"节点\", \"deadline\": \"时间\",\n    \"note\": \"备注\"\
+          , \"description\": \"描述\", \"risk\": \"风险\", \"issue_id\": \"问题编号\",\n \
+          \   \"clause_id\": \"条款编号\", \"req_id\": \"要求编号\", \"qual_id\": \"资质编号\"\
+          ,\n    \"score_points\": \"评分要点\",\n}\n\ndef remap(d):\n    if not isinstance(d,\
+          \ dict):\n        return d\n    out = {}\n    for k, v in d.items():\n \
+          \       cn = KEY_MAP.get(k, k)\n        if isinstance(v, list):\n      \
+          \      v = [remap(i) if isinstance(i, dict) else i for i in v]\n       \
+          \ out[cn] = v\n    return out\n\ndef build_report(d):\n    if not isinstance(d,\
+          \ dict):\n        return str(d)\n    L = []\n    L.append(\"# 标书智能解构与风险扫描报告\"\
+          )\n    L.append(\"\")\n    info = [\n        (\"项目名称\", d.get(\"项目名称\",\
+          \ \"\")),\n        (\"标书类型\", d.get(\"标书类型\", \"\")),\n        (\"总体风险等级\"\
+          , d.get(\"总体风险等级\", \"未知\")),\n        (\"扫描摘要\", d.get(\"扫描摘要\", \"\")),\n\
+          \    ]\n    L.append(\"## 一、扫描概览\")\n    L.append(\"\")\n    for k, v in\
+          \ info:\n        if v:\n            L.append(f\"- **{k}**：{v}\")\n    L.append(\"\
+          \")\n    sections = [\n        (\"废标条款\", \"二、废标条款（否决项）\"),\n        (\"\
+          实质性响应要求\", \"三、实质性响应要求\"),\n        (\"资质要求\", \"四、资质要求\"),\n        (\"\
+          关键时间节点\", \"五、关键时间节点\"),\n        (\"模糊或排他性风险\", \"六、模糊 / 排他性风险提示\"),\n\
+          \        (\"评分要点\", \"七、评分要点\"),\n    ]\n    for key, title in sections:\n\
+          \        items = d.get(key)\n        if not items:\n            continue\n\
+          \        L.append(f\"## {title}\")\n        L.append(\"\")\n        if isinstance(items,\
+          \ list) and items and isinstance(items[0], dict):\n            cols = []\n\
+          \            for it in items:\n                for c in it.keys():\n   \
+          \                 if c not in cols:\n                        cols.append(c)\n\
+          \            L.append(\"| 序号 | \" + \" | \".join(cols) + \" |\")\n     \
+          \       L.append(\"|------|\" + \"|\".join([\"------\"] * len(cols)) + \"\
+          |\")\n            for i, it in enumerate(items, 1):\n                L.append(\"\
+          | \" + str(i) + \" | \" + \" | \".join(str(it.get(c, \"\")) for c in cols)\
+          \ + \" |\")\n        else:\n            L.append(\"| 序号 | 内容 |\")\n    \
+          \        L.append(\"|------|------|\")\n            for i, it in enumerate(items,\
+          \ 1):\n                L.append(f\"| {i} | {it} |\")\n        L.append(\"\
+          \")\n    return \"\\n\".join(L)\n\ndef main(llm_output: str) -> dict:\n\
+          \    data = {}\n    parse_error = \"\"\n    if not llm_output:\n       \
+          \ return {\"parsed_json\": {}, \"formatted_json\": \"{}\",\n           \
+          \     \"report_md\": \"# 标书智能解构与风险扫描报告\\n\\n（LLM 输出为空，无法生成报告）\",\n     \
+          \           \"risk_level\": \"未知\", \"rejection_count\": 0, \"qual_count\"\
+          : 0, \"parse_error\": \"LLM 输出为空\"}\n    try:\n        matches = re.findall(r\"\
+          ```json\\s*([\\s\\S]*?)```\", llm_output, re.IGNORECASE)\n        raw =\
+          \ matches[0].strip() if matches else llm_output.strip()\n        data =\
+          \ json.loads(raw)\n    except Exception as e:\n        parse_error = f\"\
+          解析失败: {str(e)} | 前200字: {llm_output[:200]}\"\n    data = remap(data) if\
+          \ isinstance(data, dict) else {}\n    report_md = build_report(data)\n \
+          \   rejection_clauses = data.get(\"废标条款\", []) if isinstance(data, dict)\
+          \ else []\n    qualification_requirements = data.get(\"资质要求\", []) if isinstance(data,\
+          \ dict) else []\n    return {\n        \"parsed_json\": data,\n        \"\
+          formatted_json\": json.dumps(data, ensure_ascii=False, indent=2),\n    \
+          \    \"report_md\": report_md,\n        \"risk_level\": data.get(\"总体风险等级\"\
+          , \"未知\") if isinstance(data, dict) else \"未知\",\n        \"rejection_count\"\
+          : len(rejection_clauses) if isinstance(rejection_clauses, list) else 0,\n\
+          \        \"qual_count\": len(qualification_requirements) if isinstance(qualification_requirements,\
+          \ list) else 0,\n        \"parse_error\": parse_error,\n    }\n"
+        code_language: python3
+        outputs:
+          formatted_json:
+            children: null
+            type: string
+          parse_error:
+            children: null
+            type: string
+          parsed_json:
+            children: null
+            type: object
+          qual_count:
+            children: null
+            type: number
+          rejection_count:
+            children: null
+            type: number
+          report_md:
+            children: null
+            type: string
+          risk_level:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行
+        type: code
+        variables:
+        - value_selector:
+          - '1785902281177'
+          - text
+          value_type: string
+          variable: llm_output
+      height: 51
+      id: '1785909630343'
+      position:
+        x: 984
+        y: 282
+      positionAbsolute:
+        x: 984
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 0
+    - data:
+        outputs:
+        - value_selector:
+          - '1785909630343'
+          - report_md
+          value_type: string
+          variable: report
+        selected: false
+        title: 输出
+        type: end
+      height: 87
+      id: '1785909857237'
+      position:
+        x: 1285
+        y: 282
+      positionAbsolute:
+        x: 1285
+        y: 282
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 0
+    viewport:
+      x: 40.84046914666715
+      y: 173.0799165473071
+      zoom: 0.5988328216672593
+  rag_pipeline_variables: []
